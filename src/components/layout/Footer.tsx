@@ -155,7 +155,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 border-t border-primary-foreground/10 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 text-sm text-primary-foreground/60 md:flex-row">
-            <p>© 2026 Zeromade. All rights reserved.</p>
+            <p>© 2026 Zeromade – Apna Time, Apna Design</p>
             <div className="flex gap-4">
               <Link to="/privacy" className="hover:text-primary-foreground">
                 Privacy Policy

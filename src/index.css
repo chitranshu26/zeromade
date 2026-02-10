@@ -132,12 +132,18 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Space Grotesk', system-ui, sans-serif;
   }
 }
 
 @layer components {
+
   /* Zeromade Custom Components */
   .zeromade-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
@@ -246,6 +252,15 @@
 
   .nav-link:hover::after {
     @apply w-full;
+  }
+
+  /* Safeguard: Hide any element that might be injected with 'lovable' branding */
+  [class*="lovable"],
+  [id*="lovable"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 }
 
