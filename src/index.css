@@ -166,8 +166,10 @@
   }
 
   .zeromade-text-gradient {
-    @apply bg-clip-text text-transparent;
+    @apply bg-clip-text text-transparent inline-block;
     background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
   }
 
   .zeromade-glow {
