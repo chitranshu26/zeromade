@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { useCart } from "@/context/CartContext";
 import {
   Select,
   SelectContent,
@@ -62,6 +63,8 @@ export default function Customize() {
     shoulders: 45,
     sleeve: 60,
   });
+
+  const { addItem } = useCart();
 
   return (
     <div className="min-h-screen bg-background">
@@ -426,7 +429,19 @@ export default function Customize() {
                     </div>
                   </div>
 
-                  <Button className="mt-6 w-full btn-hero">
+                  <Button
+                    className="mt-6 w-full btn-hero"
+                    onClick={() =>
+                      addItem({
+                        id: `custom-${Date.now()}`,
+                        name: "Custom Zeromade Outfit",
+                        price: 1999,
+                        image: "",
+                        color: colors.find((c) => c.id === selectedColor)?.name,
+                        size: gender === "female" ? "Women's Fit" : "Unisex",
+                      })
+                    }
+                  >
                     Add to Cart
                     <ChevronRight className="ml-2 h-5 w-5" />
                   </Button>

@@ -17,22 +17,16 @@ export function HeroSection() {
       {/* Content */}
       <div className="zeromade-container relative z-10">
         <div className="max-w-2xl">
-          {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent backdrop-blur-sm animate-fade-in">
-            <Sparkles className="h-4 w-4" />
-            AI-Powered Customization
-          </div>
-
           {/* Headline */}
           <h1 className="mb-6 font-display text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl animate-fade-in-up">
-            Design Your Style.{" "}
-            <span className="zeromade-text-gradient">Made For You.</span>
+            Zeromade –{" "}
+            <span className="zeromade-text-gradient">Apna Time, Apna Design</span>
           </h1>
 
           {/* Subheadline */}
           <p className="mb-8 text-lg text-primary-foreground/80 sm:text-xl animate-fade-in-up animation-delay-200">
-            Experience the future of fashion. Create custom clothing that fits
-            your body perfectly with our AI-powered design studio.
+            Custom and pre-designed clothing made just for you. Premium streetwear,
+            hoodies, T-shirts and more with an Indian street culture soul.
           </p>
 
           {/* CTA Buttons */}

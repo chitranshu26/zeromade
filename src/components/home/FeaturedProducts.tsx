@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { useCart } from "@/context/CartContext";
+import { fetchProducts } from "@/lib/api";
 
 // Import product images
 import hoodieBlack from "@/assets/products/hoodie-black.jpg";
@@ -113,6 +116,16 @@ function formatPrice(price: number) {
 }
 
 export function FeaturedProducts() {
+  const { addItem } = useCart();
+  const { data: remoteProducts } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+    retry: 1,
+  });
+
+  const productList =
+    (remoteProducts as typeof products | undefined) ?? products;
+
   return (
     <section className="bg-secondary/30 py-16 lg:py-24">
       <div className="zeromade-container">
@@ -137,7 +150,7 @@ export function FeaturedProducts() {
 
         {/* Products Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => (
+          {productList.map((product) => (
             <div
               key={product.id}
               className="product-card group"
@@ -166,6 +179,14 @@ export function FeaturedProducts() {
                     size="icon"
                     variant="secondary"
                     className="h-9 w-9 rounded-full shadow-lg"
+                    onClick={() =>
+                      addItem({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image,
+                      })
+                    }
                   >
                     <ShoppingCart className="h-4 w-4" />
                   </Button>

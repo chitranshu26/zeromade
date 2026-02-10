@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   Heart,
   ShoppingCart,
@@ -28,6 +28,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useQuery } from "@tanstack/react-query";
+import { useCart } from "@/context/CartContext";
+import { fetchProducts, fetchCategories } from "@/lib/api";
 
 // Import product images
 import hoodieBlack from "@/assets/products/hoodie-black.jpg";
@@ -154,7 +157,6 @@ const products = [
   },
 ];
 
-const categories = ["All", "T-Shirts", "Hoodies", "Jackets", "Pants", "Sweaters"];
 const priceRanges = [
   { label: "Under ₹1,000", min: 0, max: 1000 },
   { label: "₹1,000 - ₹2,000", min: 1000, max: 2000 },
@@ -173,9 +175,11 @@ function formatPrice(price: number) {
 function FilterSidebar({
   selectedCategory,
   setSelectedCategory,
+  categories,
 }: {
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
+  categories: string[];
 }) {
   return (
     <div className="space-y-6">
@@ -187,11 +191,10 @@ function FilterSidebar({
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                selectedCategory === cat
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-secondary"
-              }`}
+              className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${selectedCategory === cat
+                ? "bg-accent text-accent-foreground"
+                : "hover:bg-secondary"
+                }`}
             >
               {cat}
             </button>
@@ -234,14 +237,47 @@ function FilterSidebar({
 }
 
 export default function Products() {
+  const { category } = useParams();
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const { data: categories = ["All"] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const cats = await fetchCategories();
+      return ["All", ...cats];
+    }
+  });
+
   const [sortBy, setSortBy] = useState("featured");
   const [gridCols, setGridCols] = useState<3 | 4>(4);
+  const { addItem } = useCart();
+
+  useEffect(() => {
+    if (category) {
+      const found = categories.find(
+        (c) =>
+          c.toLowerCase().replace(/[^a-z]/g, "") ===
+          category.toLowerCase().replace(/[^a-z]/g, "")
+      );
+      if (found) setSelectedCategory(found);
+    } else {
+      setSelectedCategory("All");
+    }
+  }, [category]);
+
+  const { data: remoteProducts } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+    retry: 1,
+  });
+
+  const productList =
+    (remoteProducts as typeof products | undefined) ?? products;
 
   const filteredProducts =
     selectedCategory === "All"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+      ? productList
+      : productList.filter((p) => p.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -263,6 +299,7 @@ export default function Products() {
             <FilterSidebar
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
+              categories={categories}
             />
           </aside>
 
@@ -296,6 +333,7 @@ export default function Products() {
                       <FilterSidebar
                         selectedCategory={selectedCategory}
                         setSelectedCategory={setSelectedCategory}
+                        categories={categories}
                       />
                     </div>
                   </SheetContent>
@@ -319,17 +357,15 @@ export default function Products() {
                 <div className="hidden items-center gap-1 rounded-lg border p-1 lg:flex">
                   <button
                     onClick={() => setGridCols(3)}
-                    className={`rounded p-1.5 ${
-                      gridCols === 3 ? "bg-secondary" : ""
-                    }`}
+                    className={`rounded p-1.5 ${gridCols === 3 ? "bg-secondary" : ""
+                      }`}
                   >
                     <Grid3X3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setGridCols(4)}
-                    className={`rounded p-1.5 ${
-                      gridCols === 4 ? "bg-secondary" : ""
-                    }`}
+                    className={`rounded p-1.5 ${gridCols === 4 ? "bg-secondary" : ""
+                      }`}
                   >
                     <LayoutGrid className="h-4 w-4" />
                   </button>
@@ -339,9 +375,8 @@ export default function Products() {
 
             {/* Products Grid */}
             <div
-              className={`grid gap-6 sm:grid-cols-2 ${
-                gridCols === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"
-              }`}
+              className={`grid gap-6 sm:grid-cols-2 ${gridCols === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"
+                }`}
             >
               {filteredProducts.map((product) => (
                 <div key={product.id} className="product-card group">
@@ -369,6 +404,16 @@ export default function Products() {
                         size="icon"
                         variant="secondary"
                         className="h-9 w-9 rounded-full shadow-lg"
+                        onClick={() =>
+                          addItem({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.image,
+                            size: product.sizes?.[0],
+                            color: product.colors?.[0],
+                          })
+                        }
                       >
                         <ShoppingCart className="h-4 w-4" />
                       </Button>

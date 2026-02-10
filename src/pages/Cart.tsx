@@ -1,53 +1,12 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-
-import hoodieBlack from "@/assets/products/hoodie-black.jpg";
-import tshirtWhite from "@/assets/products/tshirt-white.jpg";
-import joggersNavy from "@/assets/products/joggers-navy.jpg";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  size: string;
-  color: string;
-  image: string;
-}
-
-const initialCartItems: CartItem[] = [
-  {
-    id: "1",
-    name: "Premium Black Hoodie",
-    price: 2499,
-    quantity: 1,
-    size: "L",
-    color: "Black",
-    image: hoodieBlack,
-  },
-  {
-    id: "2",
-    name: "Essential White Tee",
-    price: 999,
-    quantity: 2,
-    size: "M",
-    color: "White",
-    image: tshirtWhite,
-  },
-  {
-    id: "3",
-    name: "Navy Comfort Joggers",
-    price: 1899,
-    quantity: 1,
-    size: "M",
-    color: "Navy",
-    image: joggersNavy,
-  },
-];
+import { useCart } from "@/context/CartContext";
+import { createOrder } from "@/lib/api";
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -58,28 +17,38 @@ function formatPrice(price: number) {
 }
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
-
-  const updateQuantity = (id: string, delta: number) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const {
+    items: cartItems,
+    updateQuantity,
+    removeItem,
+    subtotal,
+    clearCart,
+  } = useCart();
+  const createOrderMutation = useMutation({
+    mutationFn: createOrder,
+  });
   const shipping = subtotal > 999 ? 0 : 99;
   const total = subtotal + shipping;
+
+  const handleCheckout = async () => {
+    if (!cartItems.length || createOrderMutation.isPending) return;
+
+    try {
+      const order = await createOrderMutation.mutateAsync({
+        items: cartItems,
+        customer: null,
+        payment: { method: "cod", status: "pending" },
+      });
+      toast.success("Order placed successfully", {
+        description: `Your Zeromade order ID is ${order.id}`,
+      });
+      clearCart();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to place order";
+      toast.error(message);
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -157,7 +126,9 @@ export default function Cart() {
                     {/* Quantity */}
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => updateQuantity(item.id, -1)}
+                        onClick={() =>
+                          updateQuantity(item.id, item.quantity - 1)
+                        }
                         className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:bg-secondary"
                       >
                         <Minus className="h-4 w-4" />
@@ -166,7 +137,9 @@ export default function Cart() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateQuantity(item.id, 1)}
+                        onClick={() =>
+                          updateQuantity(item.id, item.quantity + 1)
+                        }
                         className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:bg-secondary"
                       >
                         <Plus className="h-4 w-4" />
@@ -239,7 +212,11 @@ export default function Cart() {
                 </div>
               </div>
 
-              <Button className="mt-6 w-full btn-hero">
+              <Button
+                className="mt-6 w-full btn-hero"
+                onClick={handleCheckout}
+                disabled={!cartItems.length || createOrderMutation.isPending}
+              >
                 Proceed to Checkout
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>

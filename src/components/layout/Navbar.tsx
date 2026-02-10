@@ -19,19 +19,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
-const categories = [
-  { name: "T-Shirts", href: "/category/tshirts" },
-  { name: "Hoodies", href: "/category/hoodies" },
-  { name: "Jackets", href: "/category/jackets" },
-  { name: "Pants", href: "/category/pants" },
-  { name: "Sweaters", href: "/category/sweaters" },
-  { name: "Accessories", href: "/category/accessories" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { fetchCategories } from "@/lib/api";
 
 export function Navbar() {
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+  });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { itemCount } = useCart();
+  const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,14 +51,19 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between gap-4 lg:gap-8">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <span className="font-display text-lg font-bold text-primary-foreground">
-                Z
+            <img
+              src="/logo.jpeg"
+              alt="Zeromade Logo"
+              className="h-10 w-10 rounded-full object-cover border-2 border-primary"
+            />
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="font-display text-xl font-bold tracking-tight">
+                Zeromade
+              </span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Apna Time, Apna Design
               </span>
             </div>
-            <span className="hidden font-display text-xl font-bold sm:block">
-              Zeromade
-            </span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -84,8 +91,8 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 {categories.map((category) => (
-                  <DropdownMenuItem key={category.name} asChild>
-                    <Link to={category.href}>{category.name}</Link>
+                  <DropdownMenuItem key={category} asChild>
+                    <Link to={`/category/${category.toLowerCase().replace(/ /g, "-")}`}>{category}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -115,9 +122,11 @@ export function Navbar() {
             <Link to="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-xs">
-                  3
-                </Badge>
+                {itemCount > 0 && (
+                  <Badge className="absolute -right-1 -top-1 h-5 min-w-5 rounded-full px-1 py-0 text-[10px] flex items-center justify-center">
+                    {itemCount}
+                  </Badge>
+                )}
               </Button>
             </Link>
 
@@ -134,18 +143,31 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link to="/login">Login</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/register">Sign Up</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">My Account</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/orders">My Orders</Link>
-                </DropdownMenuItem>
+                {user ? (
+                  <>
+                    <div className="px-2 py-1.5 text-sm font-semibold">
+                      {user.name}
+                    </div>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile">My Account</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/orders">My Orders</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout} className="cursor-pointer">
+                      Logout
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/login">Login</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/register">Sign Up</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -183,12 +205,12 @@ export function Navbar() {
             <div className="space-y-1">
               {categories.map((category) => (
                 <Link
-                  key={category.name}
-                  to={category.href}
+                  key={category}
+                  to={`/category/${category.toLowerCase().replace(/ /g, "-")}`}
                   className="block rounded-lg px-4 py-2 text-sm font-medium hover:bg-secondary"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {category.name}
+                  {category}
                 </Link>
               ))}
               <Link
