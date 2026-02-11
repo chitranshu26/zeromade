@@ -54,7 +54,7 @@ export function Navbar() {
             <img
               src="/logo.jpeg"
               alt="Zeromade Logo"
-              className="h-10 w-10 rounded-full object-cover border-2 border-primary"
+              className="h-12 w-19 rounded-full object-cover "
             />
             <div className="hidden sm:flex flex-col leading-tight">
               <span className="font-display text-xl font-bold tracking-tight">
