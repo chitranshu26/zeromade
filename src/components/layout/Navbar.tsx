@@ -41,7 +41,7 @@ export function Navbar() {
       <div className="bg-primary">
         <div className="zeromade-container">
           <p className="py-2 text-center text-sm font-medium text-primary-foreground">
-            Free shipping on orders over ₹999 ✨ Use code ZEROMADE20 for 20% off
+            Free shipping on orders over ₹2000 ✨ Use code ZEROMADE20 for 20% off
           </p>
         </div>
       </div>
